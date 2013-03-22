@@ -40,6 +40,11 @@
 
 #include <post.h>
 
+# ifdef CONFIG_AUTOBOOT_STOP_BUTTON
+#include <asm/io.h>
+#include <s3c2410.h>
+# endif
+
 #if defined(CONFIG_SILENT_CONSOLE) || defined(CONFIG_POST) || defined(CONFIG_CMDLINE_EDITING)
 DECLARE_GLOBAL_DATA_PTR;
 #endif
@@ -221,6 +226,7 @@ static __inline__ int abortboot(int bootdelay)
 	printf("Hit any key to stop autoboot: %2d ", bootdelay);
 #endif
 
+
 #if defined CONFIG_ZERO_BOOTDELAY_CHECK
 	/*
 	 * Check if key already pressed
@@ -235,19 +241,33 @@ static __inline__ int abortboot(int bootdelay)
 	}
 #endif
 
+# ifdef CONFIG_AUTOBOOT_STOP_BUTTON
+	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
+# endif
+
 	while ((bootdelay > 0) && (!abort)) {
 		int i;
 
 		--bootdelay;
 		/* delay 100 * 10ms */
 		for (i=0; !abort && i<100; ++i) {
+# ifdef CONFIG_AUTOBOOT_STOP_BUTTON
+			if (tstc() || (KEY4_DOWN)) {	/* we got a key press	*/
+# else
 			if (tstc()) {	/* we got a key press	*/
+# endif
 				abort  = 1;	/* don't auto boot	*/
 				bootdelay = 0;	/* no more delay	*/
 # ifdef CONFIG_MENUKEY
 				menukey = getc();
 # else
+
+# ifdef CONFIG_AUTOBOOT_STOP_BUTTON
+				if (KEY4_DOWN) //KEY4
+					break;
+# endif
 				(void) getc();  /* consume input	*/
+
 # endif
 				break;
 			}
@@ -397,6 +417,10 @@ void main_loop (void)
 
 	debug ("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
 
+# ifdef CONFIG_AUTOBOOT_STOP_BUTTON
+	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
+# endif
+
 	if (bootdelay >= 0 && s && !abortboot (bootdelay)) {
 # ifdef CONFIG_AUTOBOOT_KEYED
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
@@ -413,6 +437,16 @@ void main_loop (void)
 		disable_ctrlc(prev);	/* restore Control C checking */
 # endif
 	}
+# ifdef CONFIG_AUTOBOOT_STOP_BUTTON
+	else if (KEY4_DOWN) //KEY4 DOWN
+	{
+		coloured_LED_init();
+		blue_LED_on();
+		//s = getenv ("update");
+		run_command ("update", 0);
+		//printf("run....update.\n");
+	}
+# endif
 
 # ifdef CONFIG_MENUKEY
 	if (menukey == CONFIG_MENUKEY) {

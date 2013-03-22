@@ -50,11 +50,13 @@
 
 /*^@@+1@@<3>: 主要是为了跳过SDRAM的初始化，这对将程序下载到内存调试是必要的*/
 //#define CONFIG_SKIP_LOWLEVEL_INIT
+//#define CONFIG_SKIP_LOWLEVEL_INIT 1
+//#define CONFIG_SKIP_RELOCATE_UBOOT 1
 /*$*/
 
 /*^@@+2@@<3>*/
 //#define CONFIG_ASM_DEBUG     /* 底层调试开关 */
-//#define CONFIG_SMDK2440_LED  /* LED指示灯 */
+#define CONFIG_SMDK2440_LED  /* LED指示灯 */
 /*$*/
 
 /*
@@ -129,18 +131,32 @@
 #define CONFIG_YAFFS_SKIPFB
 /*$*/
 
+/*^@@+2@@<8>: 添加调试支持*/
+//#define DEBUG 1
+/*$*/
+
+/*^@@+2@@<8>: 添加对update的支持*/
+#define CONFIG_CMD_UPDATE
+#if defined CONFIG_CMD_UPDATE
+#define CONFIG_AUTOBOOT_STOP_BUTTON 1
+#define KEY1_DOWN (!(readl(&gpio->GPGDAT) & (1<<0)))
+#define KEY2_DOWN (!(readl(&gpio->GPGDAT) & (1<<3)))
+#define KEY3_DOWN (!(readl(&gpio->GPGDAT) & (1<<5)))
+#define KEY4_DOWN (!(readl(&gpio->GPGDAT) & (1<<6)))
+#endif
+/*$*/
+
 /*^@@+3@@<6>*/
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_TAG
-#define CONFIG_BOOTARGS	"root=/dev/nfs nfsroot=192.168.1.5:/nfs/rootfs \
-ip=192.168.1.230 console=ttySAC0,115200"
+#define CONFIG_BOOTARGS	"noinitrd root=/dev/mtdblock3 console=ttySAC0,115200 init=/linuxrc mem64M"
 /*$*/
 
 /*^@@-1,+4@@<6>: u-boot自启动支持*/
 //#define CONFIG_BOOTDELAY	3
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND "tftp uImage ; bootm"
+#define CONFIG_BOOTCOMMAND "nand read 0x30008000 0x60000 0x250000;bootm"
 /*$*/
 
 /*#define CONFIG_BOOTARGS	"root=ramfs devfs=mount console=ttySA0,9600" */
@@ -153,7 +169,7 @@ ip=192.168.1.230 console=ttySAC0,115200"
 #define CONFIG_ETHADDR	    08:90:00:A0:90:90
 #define CONFIG_NETMASK      255.255.255.0
 #define CONFIG_IPADDR		192.168.1.230
-#define CONFIG_SERVERIP		192.168.1.5
+#define CONFIG_SERVERIP		192.168.1.229
 #define CONFIG_GATEWAYIP	192.168.1.1
 /*$*/
 

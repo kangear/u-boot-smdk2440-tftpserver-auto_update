@@ -329,6 +329,7 @@ extern uchar		NetOurEther[6];		/* Our ethernet address		*/
 extern uchar		NetServerEther[6];	/* Boot server enet address	*/
 extern IPaddr_t		NetOurIP;		/* Our    IP addr (0 = unknown)	*/
 extern IPaddr_t		NetServerIP;		/* Server IP addr (0 = unknown)	*/
+extern IPaddr_t		NetClientIP;		/* Server IP addr (0 = unknown)	*/
 extern volatile uchar * NetTxPacket;		/* THE transmit packet		*/
 extern volatile uchar * NetRxPackets[PKTBUFSRX];/* Receive packets		*/
 extern volatile uchar * NetRxPacket;		/* Current receive packet	*/
@@ -356,7 +357,7 @@ extern int		NetState;		/* Network loop state		*/
 extern int		NetRestartWrap;		/* Tried all network devices	*/
 #endif
 
-typedef enum { BOOTP, RARP, ARP, TFTP, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP } proto_t;
+typedef enum { BOOTP, RARP, ARP, TFTP, TFTPSERVER, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP } proto_t;
 
 /* from net/net.c */
 extern char	BootFile[128];			/* Boot File name		*/

@@ -54,6 +54,17 @@ U_BOOT_CMD(
 	"[loadAddress] [[hostIPaddr:]bootfilename]"
 );
 
+int do_tftpserver (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	return netboot_common (TFTPSERVER, cmdtp, argc, argv);
+}
+
+U_BOOT_CMD(
+	tftpserver,	1,	1,	do_tftpserver,
+	"boot image via network using TFTP protocol",
+	"[] []"
+);
+
 int do_rarpb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	return netboot_common (RARP, cmdtp, argc, argv);

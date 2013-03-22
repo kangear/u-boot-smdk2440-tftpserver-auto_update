@@ -80,6 +80,7 @@
 #include <net.h>
 #include "bootp.h"
 #include "tftp.h"
+#include "tftpserver.h"
 #include "rarp.h"
 #include "nfs.h"
 #ifdef CONFIG_STATUS_LED
@@ -138,6 +139,7 @@ uchar		NetServerEther[6] =	/* Boot server enet address		*/
 			{ 0, 0, 0, 0, 0, 0 };
 IPaddr_t	NetOurIP;		/* Our IP addr (0 = unknown)		*/
 IPaddr_t	NetServerIP;		/* Server IP addr (0 = unknown)		*/
+IPaddr_t	NetClientIP;		/* Server IP addr (0 = unknown)		*/
 volatile uchar *NetRxPacket;		/* Current receive packet		*/
 int		NetRxPacketLen;		/* Current rx packet length		*/
 unsigned	NetIPID;		/* IP packet ID				*/
@@ -384,6 +386,11 @@ restart:
 		NetDevExists = 1;
 #endif
 		switch (protocol) {
+		case TFTPSERVER:
+			/* always use ARP to get server ethernet address */
+			TftpServerStart();
+			break;
+
 		case TFTP:
 			/* always use ARP to get server ethernet address */
 			TftpStart();
@@ -1672,6 +1679,7 @@ NetReceive(volatile uchar * inpkt, int len)
 		/*
 		 *	IP header OK.  Pass the packet to the current handler.
 		 */
+		NetClientIP	= NetReadIP(&ip->ip_src);
 		(*packetHandler)((uchar *)ip +IP_HDR_SIZE,
 						ntohs(ip->udp_dst),
 						ntohs(ip->udp_src),
@@ -1729,6 +1737,16 @@ static int net_check_prereq (proto_t protocol)
 			return (1);
 		}
 		/* Fall through */
+
+	/*
+	 * must after "case TFTP" or you ClientIP must is “serverip”->
+	 * case TFTPSERVER --> case TFTP
+	 */
+	case TFTPSERVER:
+		if (NetOurIP == 0) {
+			puts ("*** ERROR: `ipaddr' not set\n");
+			return (1);
+		}
 
 	case DHCP:
 	case RARP:
